@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login | Expense Manager</title>
+
+  <!-- Bootstrap & Axios -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <!-- Modern CSS -->
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    .login-card {
+      background: #ffffff;
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+      animation: fadeIn 0.7s ease-in-out;
+    }
+
+    .login-card h2 {
+      text-align: center;
+      color: #007bff;
+      font-size: 28px;
+      margin-bottom: 25px;
+      font-weight: 700;
+    }
+
+    .form-label {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      padding: 12px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      transition: border 0.3s;
+    }
+
+    .form-control:focus {
+      border-color: #007bff;
+      box-shadow: none;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .btn-submit:hover {
+      background: #0056b3;
+    }
+
+    .signup-text {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .signup-text a {
+      color: #007bff;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .signup-text a:hover {
+      text-decoration: underline;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-card">
+    <h2>Welcome Back</h2>
+    <form onsubmit="event.preventDefault(); log();">
+      <div class="mb-3">
+        <label for="mobileNumber" class="form-label">Mobile Number</label>
+        <input type="tel" id="mobileNumber" class="form-control" placeholder="Enter 10-digit mobile number" required />
+      </div>
+
+      <button type="submit" class="btn-submit">Login</button>
+
+      <div class="signup-text">
+        Don't have an account? <a href="register.html">Sign up</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Script -->
+  <script>
+    function log() {
+      const mob = document.getElementById("mobileNumber").value.trim();
+
+      if (!/^\d{10}$/.test(mob)) {
+        alert("Please enter a valid 10-digit mobile number.");
+        return;
+      }
+
+      axios.get("https://codingshika.com/APP/EXP/user_login.php?mobile=" + mob)
+        .then(res => {
+          const response = res.data.posts;
+          if (response.status === "200") {
+            localStorage.setItem("id", response.id);
+            window.location.href = "index.html";
+          } else {
+            alert("Login failed. Invalid mobile number.");
+          }
+        })
+        .catch(error => {
+          console.error("Login error:", error);
+          alert("Something went wrong. Please try again later.");
+        });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Personal Transaction</title>
+
+  <!-- Bootstrap + FontAwesome + Axios + jQuery -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <style>
+    :root {
+      --primary-bg: #1f2e56;
+      --primary-text: #ffffff;
+      --light-bg: #f2f4f7;
+      --dark-bg: #1e1e2f;
+      --card-bg-dark: #2c2c3c;
+      --card-bg-light: #ffffff;
+      --transition: all 0.3s ease;
+    }
+
+    body {
+      background-color: var(--light-bg);
+      padding-top: 80px;
+      font-family: 'Segoe UI', sans-serif;
+      transition: var(--transition);
+    }
+
+    .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #1f2e56, #2e3d6b);
+  color: white;
+  z-index: 1000;
+  font-family: 'Segoe UI', sans-serif;
+  transition: background 0.3s ease-in-out;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.btn-outline-light:hover {
+  background-color: white;
+  color: #1f2e56;
+  transition: all 0.3s ease;
+}
+
+
+    #themeToggle {
+      right: 70px;
+      background-color: #ffffff;
+      border: none;
+      border-radius: 5px;
+      padding: 4px 12px;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .card-box {
+      background-color: var(--primary-bg);
+      color: var(--primary-text);
+      border-radius: 12px;
+      padding: 20px 15px;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .card-box img {
+      width: 48px;
+      margin-bottom: 10px;
+    }
+
+    .balance-card {
+      background-color: var(--card-bg-light);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .balance-card img {
+      width: 48px;
+      margin: 0 10px;
+    }
+
+    table.table th,
+    table.table td {
+      vertical-align: middle;
+    }
+
+    body.dark-mode {
+      background-color: var(--dark-bg);
+      color: #f0f0f0;
+    }
+
+    body.dark-mode .header,
+    body.dark-mode .card-box {
+      background-color: #121a3a;
+    }
+
+    body.dark-mode .balance-card {
+      background-color: var(--card-bg-dark);
+    }
+
+    body.dark-mode .table {
+      background-color: #343a40;
+      color: white;
+    }
+
+    body.dark-mode .table-dark th {
+      background-color: #2b2b2b;
+    }
+
+    .btn-outline-success,
+    .btn-outline-danger,
+    .btn-primary {
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .modal-content {
+      border-radius: 15px;
+    }
+    footer a:hover {
+  color: #0d6efd !important;
+  text-decoration: underline;
+}
+
+  </style>
+</head>
+
+<body onload="api()">
+
+  <!-- Header -->
+   
+  <!-- Header -->
+<div class="header d-flex justify-content-between align-items-center px-4 py-2 shadow-sm">
+  <!-- Brand Logo + Title -->
+  <div class="d-flex align-items-center gap-2">
+    <img src="https://img.icons8.com/fluency/48/money.png" alt="Logo" style="width: 32px; animation: float 1.5s ease-in-out infinite;">
+    <span class="fs-5 fw-bold" style="letter-spacing: 0.5px;">Personal Transaction</span>
+  </div>
+
+  <!-- Actions -->
+  <div class="d-flex align-items-center gap-2">
+    <button id="themeToggle" class="btn btn-light btn-sm px-3" title="Toggle Theme">🌙 Dark</button>
+    <button onclick="logout()" class="btn btn-outline-light btn-sm" title="Logout">
+      <i class="fas fa-power-off"></i>
+    </button>
+  </div>
+</div>
+
+
+
+  <div class="container">
+
+    <!-- Balance Section -->
+    <div class="balance-card my-4">
+      <div>
+        <img src="https://img.icons8.com/color/96/000000/money.png" />
+        <img src="https://img.icons8.com/color/96/000000/sales-performance.png" />
+      </div>
+      <h2 class="text-success mt-3" id="currentBalance">₹0.00</h2>
+      <p>Current Balance</p>
+
+      <div class="row mt-4">
+        <div class="col-6 text-center">
+          <button class="btn btn-outline-success w-100" data-bs-toggle="modal" data-bs-target="#creditModal">Add Credit</button>
+        </div>
+        <div class="col-6 text-center">
+          <button class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#debitModal">Add Debit</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Credit Modal -->
+    <div class="modal fade" id="creditModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header border-0">
+            <h5 class="modal-title w-100 text-center">Credit Transaction</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <input type="date" class="form-control my-2" id="creditDate">
+            <input type="text" class="form-control my-2" id="creditNote" placeholder="Enter notes">
+            <input type="number" class="form-control my-2" id="creditAmount" placeholder="Enter Amount">
+            <button onclick="credit()" class="btn btn-primary w-100 mt-2">Add Credit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Debit Modal -->
+    <div class="modal fade" id="debitModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header border-0">
+            <h5 class="modal-title w-100 text-center">Debit Transaction</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <input type="date" class="form-control my-2" id="debitDate">
+            <input type="text" class="form-control my-2" id="debitNote" placeholder="Enter notes">
+            <input type="number" class="form-control my-2" id="debitAmount" placeholder="Enter Amount">
+            <button onclick="debit()" class="btn btn-primary w-100 mt-2">Add Debit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row text-center">
+      <div class="col-6 col-md-3">
+        <div class="card-box">
+          <img src="https://img.icons8.com/color/96/000000/bank-cards.png" />
+          <h5 id="totalCredit">₹0.00</h5>
+          <p>Total Credit</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card-box">
+          <img src="https://img.icons8.com/color/96/000000/bank-cards.png" />
+          <h5 id="totalDebit">₹0.00</h5>
+          <p>Total Debit</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card-box">
+          <img src="https://img.icons8.com/color/96/000000/money-bag.png" />
+          <h5 id="creditPlusDebit">₹0.00</h5>
+          <p>Credit + Debit</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card-box">
+          <img src="https://img.icons8.com/color/96/000000/money-transfer.png" />
+          <h5 id="creditMinusDebit">₹0.00</h5>
+          <p>Credit - Debit</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transaction Table -->
+    <h5 class="mt-4">Transaction List</h5>
+    <div style="max-height: 400px; overflow-y: auto;">
+      <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th>Date</th>
+            <th>Note</th>
+            <th class="text-success">Credit</th>
+            <th class="text-danger">Debit</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+        <tbody id="transactionTable"></tbody>
+        <tfoot>
+          <tr>
+            <th colspan="2" class="text-end">Total</th>
+            <th id="Credit" class="text-success">0.00</th>
+            <th id="Debit" class="text-danger">0.00</th>
+            <th id="Balance">0.00</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- Script for Logic -->
+  <script>
+    if (!localStorage.getItem("id")) {
+      alert("Please login first!");
+      window.location.href = "login.html";
+    }
+
+    function logout() {
+      localStorage.clear();
+      alert("You have been logged out.");
+      window.location.href = "login.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggleBtn = document.getElementById("themeToggle");
+      const isDark = localStorage.getItem("theme") === "dark";
+      if (isDark) {
+        document.body.classList.add("dark-mode");
+        toggleBtn.innerText = "☀️ Light";
+      }
+      toggleBtn.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        const isDarkMode = document.body.classList.contains("dark-mode");
+        localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+        toggleBtn.innerText = isDarkMode ? "☀️ Light" : "🌙 Dark";
+      });
+    });
+
+    function credit() {
+      const date = document.getElementById("creditDate").value;
+      const note = document.getElementById("creditNote").value;
+      const amount = document.getElementById("creditAmount").value;
+      const uid = localStorage.getItem("id");
+      if (!date || !note || !amount) return alert("Please fill all fields.");
+      axios.get(`https://codingshika.com/APP/EXP/insert_credit.php?uid=${uid}&date=${date}&note=${note}&debit=0&credit=${amount}`)
+        .then(res => {
+          if (res.data.posts.status === "200") {
+            alert("Credit Success");
+            api();
+          } else alert("Credit Failed");
+        }).catch(() => alert("API Error"));
+    }
+
+    function debit() {
+      const date = document.getElementById("debitDate").value;
+      const note = document.getElementById("debitNote").value;
+      const amount = document.getElementById("debitAmount").value;
+      const uid = localStorage.getItem("id");
+      if (!date || !note || !amount) return alert("Please fill all fields.");
+      axios.get(`https://codingshika.com/APP/EXP/insert_debit.php?uid=${uid}&date=${date}&note=${note}&debit=${amount}&credit=0`)
+        .then(res => {
+          if (res.data.posts.status === "200") {
+            alert("Debit Success");
+            api();
+          } else alert("Debit Failed");
+        }).catch(() => alert("API Error"));
+    }
+
+    function api() {
+      const uid = localStorage.getItem("id");
+      axios.post(`https://codingshika.com/APP/EXP/opbal_list.php?uid=${uid}`)
+        .then(response => {
+          const opbal = parseFloat(response.data.posts.post[0]?.OPBAL || 0);
+          document.getElementById("currentBalance").innerText = `₹${opbal.toFixed(2)}`;
+        });
+
+      axios.get(`https://codingshika.com/APP/EXP/transaction_list.php?uid=${uid}`)
+        .then(response => {
+          const transactions = response.data.posts.post || [];
+          let totalCredit = 0, totalDebit = 0, currentBalance = 0;
+          $('#transactionTable').html('');
+          transactions.forEach(tx => {
+            const credit = parseFloat(tx.CREDIT || 0);
+            const debit = parseFloat(tx.DEBIT || 0);
+            const balance = parseFloat(tx.CLBAL || 0);
+            totalCredit += credit;
+            totalDebit += debit;
+            currentBalance = balance;
+            $('#transactionTable').append(`
+              <tr>
+                <td>${tx.DATE}</td>
+                <td>${tx.NOTE}</td>
+                <td>${credit}</td>
+                <td>${debit}</td>
+                <td>${balance}</td>
+              </tr>
+            `);
+          });
+
+          document.getElementById("totalCredit").innerText = `₹${totalCredit.toFixed(2)}`;
+          document.getElementById("totalDebit").innerText = `₹${totalDebit.toFixed(2)}`;
+          document.getElementById("creditPlusDebit").innerText = `₹${(totalCredit + totalDebit).toFixed(2)}`;
+          document.getElementById("creditMinusDebit").innerText = `₹${(totalCredit - totalDebit).toFixed(2)}`;
+          document.getElementById("Credit").innerText = totalCredit.toFixed(2);
+          document.getElementById("Debit").innerText = totalDebit.toFixed(2);
+          document.getElementById("Balance").innerText = currentBalance.toFixed(2);
+        });
+    }
+  </script>
+  <!-- Footer -->
+<footer class="mt-5 bg-dark text-light pt-4 pb-2">
+  <div class="container text-center">
+    <h5 class="fw-semibold mb-2">💼 Personal Transaction Manager</h5>
+    <p class="mb-3 small text-muted">Track your income & expenses with ease.</p>
+
+    <div class="d-flex justify-content-center gap-3 mb-3 flex-wrap">
+      <a href="Privacy.html" class="text-light text-decoration-none">
+        <i class="fas fa-user-shield me-1"></i> Privacy
+      </a>
+      <a href="Trems.html" class="text-light text-decoration-none">
+        <i class="fas fa-file-contract me-1"></i> Terms
+      </a>
+      <a href="Contact.html" class="text-light text-decoration-none">
+        <i class="fas fa-envelope me-1"></i> Contact
+      </a>
+      <a href="https://github.com/sudarshan-kanase" target="_blank" class="text-light text-decoration-none">
+        <i class="fab fa-github me-1"></i> GitHub
+      </a>
+    </div>
+
+    <div class="border-top pt-3">
+      <p class="small mb-0 text-muted">
+        &copy; 2025 <strong>Sudarshan Kanase</strong>. All rights reserved.
+      </p>
+    </div>
+  </div>
+</footer>
+
+
+
+</body>
+</html>
